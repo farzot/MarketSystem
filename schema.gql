@@ -1,0 +1,104 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Category {
+  id: Float!
+  name: String!
+  products: [Product!]!
+  store: Store!
+}
+
+input CreateStoreDto {
+  adminId: Int!
+  contact: String!
+  location: String!
+  name: String!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Discount {
+  discount_price: Float!
+  end_date: DateTime!
+  id: ID!
+  product: Product!
+  start_date: DateTime!
+}
+
+type Mutation {
+  createStore(createStoreDto: CreateStoreDto!): Store!
+  removeStore(id: ID!): Boolean!
+  updateStore(id: ID!, updateStoreDto: UpdateStoreDto!): Store!
+}
+
+type Order {
+  cashierId: Float!
+  date: String!
+  id: Float!
+  items: [OrderItem!]!
+  payment_method: String!
+  store: Store!
+  total_amount: Float!
+}
+
+type OrderItem {
+  id: Float!
+  order: Order!
+  product: Product!
+  quantity: Float!
+}
+
+type Product {
+  amount: Float!
+  category: Category!
+  cost_price: Float!
+  description: String!
+  discounts: [Discount!]!
+  id: ID!
+  image: String!
+  name: String
+  orderItems: [OrderItem!]!
+  original_sale_price: Float
+  sale_price: Float!
+  sold_amount: Float
+  store: Store!
+}
+
+type Query {
+  store(id: ID!): Store!
+  stores: [Store!]!
+}
+
+type Store {
+  admin: User!
+  categories: [Category!]
+  contact: String!
+  id: Float!
+  location: String!
+  name: String!
+  orders: [Order!]
+  products: [Product!]
+}
+
+input UpdateStoreDto {
+  adminId: Int
+  contact: String
+  location: String
+  name: String
+}
+
+type User {
+  confirmPassword: String!
+  email: String!
+  hashedRefreshToken: String!
+  id: Float!
+  isActive: Boolean!
+  name: String!
+  password: String!
+  role: String!
+  stores: [Store!]!
+}
