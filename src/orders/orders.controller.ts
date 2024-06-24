@@ -6,18 +6,27 @@ import {
   Delete,
   Body,
   Param,
+  UseGuards,
+  NotFoundException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Order } from './entities/order.entity';
 import { OrdersService } from './orders.service';
+import { CashierGuard } from '../common/guards/cashier.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { UserRole } from '../users/entities/user.entity';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { Roles } from '../common/decorators/roles.decorators';
 
 @ApiTags('Orders')
 @Controller('orders')
 export class OrderController {
   constructor(private readonly orderService: OrdersService) {}
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.CASHIER)
   @Post()
   @ApiOperation({ summary: 'Create order' })
   @ApiResponse({
@@ -28,7 +37,11 @@ export class OrderController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 404, description: 'Product not found' })
   async create(@Body() createOrderDto: CreateOrderDto): Promise<Order> {
-    return await this.orderService.create(createOrderDto);
+    try {
+      return await this.orderService.create(createOrderDto);
+    } catch (error) {
+      throw new NotFoundException(error.message);
+    }
   }
 
   @Get()
@@ -39,7 +52,11 @@ export class OrderController {
     type: [Order],
   })
   async findAll(): Promise<Order[]> {
-    return await this.orderService.findAll();
+    try {
+      return await this.orderService.findAll();
+    } catch (error) {
+      throw new NotFoundException(error.message);
+    }
   }
 
   @Get(':id')
@@ -51,9 +68,15 @@ export class OrderController {
   })
   @ApiResponse({ status: 404, description: 'Order not found' })
   async findOne(@Param('id') id: number): Promise<Order> {
-    return await this.orderService.findOne(id);
+    try {
+      return await this.orderService.findOne(id);
+    } catch (error) {
+      throw new NotFoundException(error.message);
+    }
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.CASHIER)
   @Put(':id')
   @ApiOperation({ summary: 'Update order' })
   @ApiResponse({
@@ -66,14 +89,24 @@ export class OrderController {
     @Param('id') id: number,
     @Body() updateOrderDto: UpdateOrderDto,
   ): Promise<Order> {
-    return await this.orderService.update(id, updateOrderDto);
+    try {
+      return await this.orderService.update(id, updateOrderDto);
+    } catch (error) {
+      throw new NotFoundException(error.message);
+    }
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.CASHIER)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete order' })
   @ApiResponse({ status: 200, description: 'Order deleted successfully.' })
   @ApiResponse({ status: 404, description: 'Order not found' })
   async remove(@Param('id') id: number): Promise<void> {
-    return await this.orderService.remove(id);
+    try {
+      await this.orderService.remove(id);
+    } catch (error) {
+      throw new NotFoundException(error.message);
+    }
   }
 }

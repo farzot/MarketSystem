@@ -15,13 +15,18 @@ import { Category } from './entities/category.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { AdminGuard } from '../common/guards/admin.guard';
+import { UserRole } from '../users/entities/user.entity';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { Roles } from '../common/decorators/roles.decorators';
 
 @ApiTags('Categories')
 @Controller('categories')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
-  @UseGuards(AdminGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @Post()
   @ApiOperation({ summary: 'Create a new category' })
   @ApiResponse({
@@ -48,7 +53,11 @@ export class CategoryController {
     type: [Category],
   })
   async findAll(): Promise<Category[]> {
-    return this.categoryService.findAll();
+    try {
+      return await this.categoryService.findAll();
+    } catch (error) {
+      throw new NotFoundException(error.message);
+    }
   }
 
   @Get(':id')
@@ -67,7 +76,8 @@ export class CategoryController {
     }
   }
 
-  @UseGuards(AdminGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, AdminGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @Put(':id')
   @ApiOperation({ summary: 'Update a category by ID' })
   @ApiResponse({
@@ -87,7 +97,8 @@ export class CategoryController {
     }
   }
 
-  @UseGuards(AdminGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, AdminGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a category by ID' })
   @ApiResponse({
@@ -97,7 +108,7 @@ export class CategoryController {
   @ApiResponse({ status: 404, description: 'Category not found.' })
   async remove(@Param('id') id: number): Promise<void> {
     try {
-      return await this.categoryService.remove(id);
+      await this.categoryService.remove(id);
     } catch (error) {
       throw new NotFoundException(error.message);
     }

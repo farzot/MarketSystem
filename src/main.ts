@@ -27,7 +27,7 @@ async function start() {
       .setVersion('1.0')
       .addTag(
         `
-          NodeJS, Validation, Postgres, JWT, GraphQL Swagger, TypeORM, NestJS
+          NodeJS, Validation, Postgres, JWT, GraphQL Swagger, TypeORM, NestJS, Unit testing, e2e testing
       `,
       )
       .build();

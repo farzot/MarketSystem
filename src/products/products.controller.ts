@@ -10,19 +10,30 @@ import {
   NotFoundException,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { ProductService } from './products.service';
 import { Product } from './entities/product.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { AdminGuard } from '../common/guards/admin.guard';
+import { Roles } from '../common/decorators/roles.decorators';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { UserRole } from '../users/entities/user.entity';
 
 @ApiTags('Products')
 @Controller('products')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
-  @UseGuards(AdminGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @Post()
   @ApiOperation({ summary: 'Create a new product' })
   @ApiResponse({
@@ -39,6 +50,7 @@ export class ProductController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   @ApiOperation({ summary: 'Get all products' })
   @ApiResponse({
@@ -50,6 +62,7 @@ export class ProductController {
     return this.productService.findAll();
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   @ApiOperation({ summary: 'Get a product by ID' })
   @ApiResponse({
@@ -66,7 +79,8 @@ export class ProductController {
     }
   }
 
-  @UseGuards(AdminGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @Patch(':id')
   @ApiOperation({ summary: 'Update a product by ID' })
   @ApiResponse({
@@ -89,7 +103,8 @@ export class ProductController {
     }
   }
 
-  @UseGuards(AdminGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a product by ID' })
   @ApiResponse({
@@ -99,17 +114,18 @@ export class ProductController {
   @ApiResponse({ status: 404, description: 'Product not found.' })
   async remove(@Param('id') id: number): Promise<void> {
     try {
-      return await this.productService.remove(id);
+      await this.productService.remove(id);
     } catch (error) {
       throw new NotFoundException(error.message);
     }
   }
 
-  @UseGuards(AdminGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: 'Increase amount of a product by ID' })
   @ApiResponse({
     status: 204,
-    description: 'The amount of product has been successfully increase.',
+    description: 'The amount of product has been successfully increased.',
   })
   @ApiResponse({ status: 404, description: 'Product not found.' })
   @Post(':id/increase-amount')
